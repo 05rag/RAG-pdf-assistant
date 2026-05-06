@@ -6,4 +6,4 @@ langchain-groq
 chromadb
 pymupdf
 sentence-transformers
-python-dotenv
+python-dotenvgit 
