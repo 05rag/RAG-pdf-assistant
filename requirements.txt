@@ -5,5 +5,5 @@ langchain-core
 langchain-groq
 chromadb
 pymupdf
-sentence-transformers
+sentence-transformers[onnx]
 python-dotenv

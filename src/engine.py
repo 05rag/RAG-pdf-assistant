@@ -5,45 +5,29 @@ import chromadb
 from chromadb.config import Settings
 from typing import List ,Dict, Any, Tuple
 from sklearn.metrics.pairwise import cosine_similarity
+import streamlit as st
 import uuid
 
-class EmbeddingManager:
+@st.cache_resource
+def load_embedding_model(model_name: str):
+    return SentenceTransformer(model_name, device="cpu")
 
+class EmbeddingManager:
     """Handles document embedding generation using Sentence Transformer"""
 
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
-
         self.model_name = model_name
-        self.model = None
-        self._load_model()
-
-    def _load_model(self):
-        """Load the sentence transformer model"""
-        try:
-            print(f"Loading embedding model: {self.model_name}")
-
-            self.model = SentenceTransformer(self.model_name)
-
-            print(f"Model loaded successfully. Embedding dimension: {self.model.get_sentence_embedding_dimension()}")
-
-        except Exception as e:
-            print(f"Error loading model: {self.model_name}:{e}")
-            raise
-
+        self.model = load_embedding_model(model_name)
     
     def generate_embeddings(self, texts:List[str]) -> np.ndarray:
-        """Generate embeddings for a list of texts
-        
+        """Generate embeddings for a list of texts   
         Args:
-        texts: List of strings to embed
-        
+        texts: List of strings to embed       
         Returns:
         Numpy array of shape (num_texts, embedding_dim)"""
 
         if not self.model:
             raise ValueError("Model not loaded")
-        
-        print(f"Generating embeddings for {len(texts)} texts...")
 
         embeddings = self.model.encode(texts, show_progress_bar = True)
         
@@ -55,17 +39,10 @@ class EmbeddingManager:
 #Vector Store 
 class VectorStore:
     """Manages document embedding in a ChromaDB vector store"""
-
-    def __init__(self, collection_name: str = "pdf_documents", persist_directory: str = "../data/vector_store"):
-        """ Initialize the vector store
-
-        Args:
-        Collection_name : Name of the ChromaDB collection
-        persist_directory: DIrectory to persist the vector store
-        """
-
+    
+    def __init__(self, collection_name: str ):
+        """ Initialize the vector store """
         self.collection_name = collection_name
-        self.persist_directory = persist_directory
         self.client = None
         self.collection = None
         self._initialize_store() #to initialize vector store
@@ -73,12 +50,8 @@ class VectorStore:
     def _initialize_store(self):
         """Initialize ChromaDB client and collection"""
 
-        try:
-            # Create persistent ChromaDB client
-            os.makedirs(self.persist_directory, exist_ok=True)
-            #persist_directory = creates client with refrence to the chromadb vector store
-            self.client= chromadb.PersistentClient(path= self.persist_directory)
-
+        try: 
+            self.client = chromadb.Client()
             #Get or create collection
             #collection = place in the vector store where we store our vector
 

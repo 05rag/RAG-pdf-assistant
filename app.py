@@ -6,10 +6,14 @@ from src.processor import process_multiple_uploads, process_uploaded_files, spli
 from src.pipeline import AdvancedRAGPipeline
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
+import uuid
 import re
 
 load_dotenv()
 os.getenv("GROQ_API_KEY")
+
+if "session_id" not in st.session_state:
+    st.session_state.session_id = f"user_{uuid.uuid4().hex[:12]}"
 
 if "processed" not in st.session_state:
     st.session_state.processed = False
@@ -31,6 +35,10 @@ uploaded_files = st.file_uploader(
     "Upload your PDF", accept_multiple_files=True, type="pdf"
 )
 
+@st.cache_resource
+def get_vector_store(session_id):
+    return VectorStore(collection_name=session_id) 
+
 #processing
 if uploaded_files:
     new_files = [f for f in uploaded_files if f.name not in st.session_state.indexed_files]
@@ -49,7 +57,7 @@ if uploaded_files:
                 if st.session_state.embed_mgr is None:
                     st.session_state.embed_mgr = EmbeddingManager()
                 if st.session_state.vector_store is None:
-                    st.session_state.vector_store = VectorStore(persist_directory='vector_store')
+                    st.session_state.vector_store = get_vector_store(st.session_state.session_id)
 
                 def clean_text(text):
                     # Remove extra whitespaces, tabs, and newlines
