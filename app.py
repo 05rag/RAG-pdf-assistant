@@ -77,8 +77,8 @@ if uploaded_files:
                     st.session_state.indexed_files.add(f.name)
 
                 st.session_state.processed = True
-                st.success("Analysis Complete!")
-                st.rerun()
+            st.success("Analysis Complete!")
+            st.rerun()
     else:
         st.info("All uploaded files are already indexed. You can start chatting!")
 
