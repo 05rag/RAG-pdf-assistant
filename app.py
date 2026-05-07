@@ -7,9 +7,13 @@ from src.pipeline import AdvancedRAGPipeline
 from dotenv import load_dotenv
 from langchain_groq import ChatGroq
 import re
+import uuid
 
 load_dotenv()
 os.getenv("GROQ_API_KEY")
+
+if "session_id" not in st.session_state:
+    st.session_state.session_id = str(uuid.uuid4())[:8]
 
 if "processed" not in st.session_state:
     st.session_state.processed = False
@@ -31,6 +35,14 @@ uploaded_files = st.file_uploader(
     "Upload your PDF", accept_multiple_files=True, type="pdf"
 )
 
+st.markdown(" **Note:** Please ensure each PDF file is less than **20MB**.")
+
+@st.cache_resource
+def get_resources():
+    embed_manager = EmbeddingManager()
+    return embed_manager
+embed_mgr_cached = get_resources()
+
 #processing
 if uploaded_files:
     new_files = [f for f in uploaded_files if f.name not in st.session_state.indexed_files]
@@ -47,9 +59,10 @@ if uploaded_files:
                 chunks = split_documents(documents)
 
                 if st.session_state.embed_mgr is None:
-                    st.session_state.embed_mgr = EmbeddingManager()
+                    st.session_state.embed_mgr = embed_mgr_cached
                 if st.session_state.vector_store is None:
-                    st.session_state.vector_store = VectorStore(persist_directory='vector_store')
+                    private_path = f"vector_store_{st.session_state.session_id}"
+                    st.session_state.vector_store = VectorStore(session_id=st.session_state.session_id,persist_directory= private_path)
 
                 def clean_text(text):
                     # Remove extra whitespaces, tabs, and newlines

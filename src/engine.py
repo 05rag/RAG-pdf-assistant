@@ -5,29 +5,33 @@ import chromadb
 from chromadb.config import Settings
 from typing import List ,Dict, Any, Tuple
 from sklearn.metrics.pairwise import cosine_similarity
+import streamlit as st
 import uuid
 
+_MODEL_CACHE = None
 class EmbeddingManager:
-
     """Handles document embedding generation using Sentence Transformer"""
 
     def __init__(self, model_name: str = "all-MiniLM-L6-v2"):
 
         self.model_name = model_name
-        self.model = None
-        self._load_model()
-
-    def _load_model(self):
-        """Load the sentence transformer model"""
+        self.model = self._load_model(self.model_name)
+    
+    @st.cache_resource
+    def _load_model(_self, model_name):
+        """
+        The underscore in _self tells Streamlit: 'Ignore the class instance'.
+        The model_name parameter tells Streamlit: 'Only reload if the name changes'.
+        """
         try:
-            print(f"Loading embedding model: {self.model_name}")
-
-            self.model = SentenceTransformer(self.model_name)
-
-            print(f"Model loaded successfully. Embedding dimension: {self.model.get_sentence_embedding_dimension()}")
+            print(f"--- Loading model: {model_name} ---")
+            model = SentenceTransformer(model_name)
+            
+            # Crucial: You MUST return the model so Streamlit can cache it
+            return model
 
         except Exception as e:
-            print(f"Error loading model: {self.model_name}:{e}")
+            print(f"Error loading model {model_name}: {e}")
             raise
 
     
@@ -56,15 +60,15 @@ class EmbeddingManager:
 class VectorStore:
     """Manages document embedding in a ChromaDB vector store"""
 
-    def __init__(self, collection_name: str = "pdf_documents", persist_directory: str = "../data/vector_store"):
+    def __init__(self, session_id: str, persist_directory: str):
         """ Initialize the vector store
 
         Args:
         Collection_name : Name of the ChromaDB collection
         persist_directory: DIrectory to persist the vector store
         """
-
-        self.collection_name = collection_name
+        self.session_id = session_id
+        self.collection_name = f"pdf_col_{session_id}"
         self.persist_directory = persist_directory
         self.client = None
         self.collection = None
@@ -84,7 +88,7 @@ class VectorStore:
 
             self.collection = self.client.get_or_create_collection(
                 name = self.collection_name,
-                metadata= {"hnsw:space": "cosine","description": "PDF document embeddings for RAG"}
+                metadata = {"hnsw:space": "cosine","description": "PDF document embeddings for RAG"}
             ) 
 
             print(f"Vector store initialized using cosine similarity. Collection: {self.collection_name}")

@@ -9,9 +9,9 @@ class AdvancedRAGPipeline:
         self.llm = llm
         self.history = [] # Store query history
 
-    def query(self, question: str, source_file: str = None, top_k: int = 8, min_score =0.3, stream: bool =False, summarize: bool = False) -> Dict:
+    def query(self, question: str, source_file: str = None, top_k: int = 8, min_score =0.1, stream: bool =False, summarize: bool = False) -> Dict:
         
-        rewrite_prompt = f"Identify and fix only typos, grammatical error in this query. Query: {question}"
+        rewrite_prompt = f"Identify the key entities and search terms in the following question. Output the keywords only, separated by spaces. Do not include any other text or labels. Question: {question}"
         search_query = self.llm.invoke(rewrite_prompt).content
         print(f"Searching for: {search_query}")
 
