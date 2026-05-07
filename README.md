@@ -1,3 +1,12 @@
+---
+title: RAG PDF Assistant
+emoji: 📄
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+---
+
 # RAG PDF Assistant
 
 An AI-powered document intelligence system built using Retrieval-Augmented Generation (RAG) that enables semantic search, contextual question answering, citation-based responses, and document summarization across multiple PDFs.

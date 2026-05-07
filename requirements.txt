@@ -7,3 +7,5 @@ chromadb
 pymupdf
 sentence-transformers
 python-dotenv
+torch --index-url https://download.pytorch.org/whl/cpu
+transformers
