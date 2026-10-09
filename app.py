@@ -56,7 +56,7 @@ if uploaded_files:
                     st.error(" No text could be extracted. The PDF might be an image or encrypted.")
                     st.stop()
                 
-                chunks = split_documents(documents)
+                chunks = split_documents(documents, embed_mgr_cached.model)
 
                 if st.session_state.embed_mgr is None:
                     st.session_state.embed_mgr = embed_mgr_cached
